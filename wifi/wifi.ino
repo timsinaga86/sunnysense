@@ -1,3 +1,4 @@
+
 #include <PubSubClient.h>
 
 #include <WiFi.h>
@@ -40,18 +41,20 @@ void setup() {
 
   Serial.printf("Connected to network %s\n", ssid);
 
-  PubSubClient client;
+  WiFiClient w;
 
-  Serial.println("Connecting to Azure IoT through MQTT.");
+  PubSubClient client("iotce365.azure-devices.net", 8883, w);
+
+  Serial.print("Connecting to Azure IoT through MQTT.");
   while (!mqttStatus) {
     mqttStatus = client.connect(
       "sunnysense",
-      "iotce365.azure-devices.net/sunnysense/?api-version=2021-04-12",
-      "HostName=iotce365.azure-devices.net;DeviceId=sunnysense;SharedAccessSignature=SharedAccessSignature sr=iotce365.azure-devices.net%2Fdevices%2Fsunnysense&sig=nYOeO9wHq6HMkfz%2Fc9M42qqy%2B3jaCA7RGqeK%2FfqPtNE%3D&se=1744462307"
-      );
-      delay(3000);
+      "iotce365.azure-devices.net/sunnysense/?api-version=2020-09-30",
+      "SharedAccessSignature sr=iotce365.azure-devices.net%2Fdevices%2Fsunnysense&sig=mFPGn3K1nXluQNmFmh4R5%2F4i9YIegU%2F96oF93VvEut0%3D&se=1685384273");
+      Serial.print(" .");
+    delay(3000);
   }
-  Serial.println("Connected to Azure!");
+  Serial.println("\nConnected to Azure!");
 }
 
 void loop() {
