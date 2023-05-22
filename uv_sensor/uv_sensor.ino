@@ -1,3 +1,7 @@
+#define UVPIN 36
+
+uint32_t sensorMilliVolt;
+
 void setup() 
 {
   Serial.begin(9600);
@@ -5,15 +9,9 @@ void setup()
  
 void loop() 
 {
-  float sensorVoltage; 
-  float sensorValue;
- 
-  sensorValue = analogRead(A0);
-  sensorVoltage = sensorValue/1024*5.0;
-  Serial.print("sensor reading = ");
-  Serial.print(sensorValue);
-  Serial.print("        sensor voltage = ");
-  Serial.printf("%0.6f",sensorVoltage);
-  Serial.println(" V");
-  delay(1000);
+  sensorMilliVolt = analogReadMilliVolts(UVPIN);
+  Serial.printf("Sensor voltage: %d mV\n", sensorMilliVolt);
+  Serial.printf("UV index: %d\n", sensorMilliVolt * 10 / 1000);
+  Serial.printf("UV diode current: %f μA\n\n", (double) sensorMilliVolt / 1000 / 4.3);
+  delay(2000);
 }
