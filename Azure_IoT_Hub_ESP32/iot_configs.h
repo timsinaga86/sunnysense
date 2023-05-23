@@ -53,11 +53,11 @@
 #endif // IOT_CONFIG_USE_X509_CERT
 
 // Azure IoT
-#define IOT_CONFIG_IOTHUB_FQDN "[your Azure IoT host name].azure-devices.net"
-#define IOT_CONFIG_DEVICE_ID "Device ID"
+#define IOT_CONFIG_IOTHUB_FQDN "iotce365.azure-devices.net"
+#define IOT_CONFIG_DEVICE_ID "sunnysense"
 // Use device key if not using certificates
 #ifndef IOT_CONFIG_USE_X509_CERT
-#define IOT_CONFIG_DEVICE_KEY "Device Key"
+#define IOT_CONFIG_DEVICE_KEY "vK3AjUnx4N7ZjRO6ddN9qTnSlVzSxLgbdY6zktYmtuU="
 #endif // IOT_CONFIG_USE_X509_CERT
 
 // Publish 1 message every 2 seconds
