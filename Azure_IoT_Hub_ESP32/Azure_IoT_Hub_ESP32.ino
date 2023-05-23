@@ -23,14 +23,6 @@
  * To properly connect to your Azure IoT Hub, please fill the information in the `iot_configs.h`
  * file.
  */
-
-
-#include "DHT.h"
-
-#define DHTPIN 15
-#define UVPIN 36
-#define DHTTYPE DHT22
-
 // C99 libraries
 #include <cstdlib>
 #include <string.h>
@@ -50,6 +42,12 @@
 #include "SerialLogger.h"
 #include "iot_configs.h"
 
+#include "DHT.h"
+
+#define DHTPIN 15
+#define UVPIN 36
+#define DHTTYPE DHT22
+
 // When developing for your own Arduino-based platform,
 // please follow the format '(ard;<platform>)'.
 #define AZURE_SDK_CLIENT_USER_AGENT "c%2F" AZ_SDK_VERSION_STRING "(ard;esp32)"
@@ -68,8 +66,8 @@
 #define GMT_OFFSET_SECS (PST_TIME_ZONE * 3600)
 #define GMT_OFFSET_SECS_DST ((PST_TIME_ZONE + PST_TIME_ZONE_DAYLIGHT_SAVINGS_DIFF) * 3600)
 
-uint32_t uvCurrent, uvIndex;
-float temp, humidity, heatIndex;
+uint32_t uvIndex;
+float temp, humidity, heatIndex, uvCurrent;
 DHT dht(DHTPIN, DHTTYPE);
 
 // Translate iot_configs.h defines into variables used by the sample
@@ -297,8 +295,12 @@ static void establishConnection() {
 static void getTelemetryPayload(az_span payload, az_span* out_payload) {
   az_span original_payload = payload;
 
-  payload = az_span_copy(payload, AZ_SPAN_FROM_STR("{ \"msgCount\": "));
-  (void)az_span_u32toa(payload, telemetry_send_count++, &payload);
+  payload = az_span_copy(payload, AZ_SPAN_FROM_STR("{ \"temperature\": "));
+  (void)az_span_dtoa(payload, temp, 3, &payload);
+  payload = az_span_copy(payload, AZ_SPAN_FROM_STR(", \"humidity\": "));
+  (void)az_span_dtoa(payload, humidity, 3, &payload);
+  payload = az_span_copy(payload, AZ_SPAN_FROM_STR(", \"uvIndex\": "));
+  (void)az_span_u32toa(payload, uvIndex, &payload);
   payload = az_span_copy(payload, AZ_SPAN_FROM_STR(" }"));
   payload = az_span_copy_u8(payload, '\0');
 
@@ -336,7 +338,7 @@ static void sendTelemetry() {
   }
 }
 
-void getSensorReadings(){
+void getSensorReadings() {
   temp = dht.readTemperature(true);
   humidity = dht.readHumidity();
   uint32_t sensorMilliVolt = analogReadMilliVolts(UVPIN);
@@ -355,12 +357,16 @@ void setup() {
 }
 
 void loop() {
+  getSensorReadings();
+  Serial.printf("Humidity: %f\n", humidity);
+  Serial.printf("Temperature: %f\n", temp);
+  Serial.printf("Heat index: %f\n", heatIndex);
+  Serial.printf("UV Index: %d\n", uvIndex);
+  Serial.printf("UV current: %f\n", uvCurrent);
+
   if (WiFi.status() != WL_CONNECTED) {
     connectToWiFi();
   }
-
-  getSensorReadings();
-
 #ifndef IOT_CONFIG_USE_X509_CERT
   else if (sasToken.IsExpired()) {
     Logger.Info("SAS token expired; reconnecting with a new one.");
@@ -372,11 +378,6 @@ void loop() {
     sendTelemetry();
     next_telemetry_send_time_ms = millis() + TELEMETRY_FREQUENCY_MILLISECS;
   }
-
-  Serial.printf("Humidity: %f\n", humidity);
-  Serial.printf("Humidity: %f\n", humidity);
-  Serial.printf("Humidity: %f\n", humidity);
-  Serial.printf("Humidity: %f\n", humidity);
 
   delay(2000);
 }
